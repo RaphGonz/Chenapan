@@ -1,14 +1,26 @@
 """
 gui.py — Alpha-Pan pygame GUI
 Human-vs-AI interface for the Chenapan board game.
-Phase 02, Plan 01: board rendering, click-to-move, side panel.
+Phase 02, Plan 02: AI background thread, checkpoint load, game-over screen, win bar.
 """
 
 import sys
+import threading
+import glob
+import os
+
 import pygame
+import torch
+import numpy as np
 from enum import Enum, auto
 
-from alpha_pan import Chenapan, MAX_NUMBER_OF_TIME_STATE_CAN_BE_VISITED, MAX_NUMBER_OF_MOVES
+from alpha_pan import (
+    Chenapan,
+    AlphaPanNet,
+    MCTS,
+    MAX_NUMBER_OF_TIME_STATE_CAN_BE_VISITED,
+    MAX_NUMBER_OF_MOVES,
+)
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -61,6 +73,38 @@ class GameState(Enum):
     WAITING_FOR_HUMAN = auto()
     AI_THINKING       = auto()
     GAME_OVER         = auto()
+
+
+# ---------------------------------------------------------------------------
+# Checkpoint helpers
+# ---------------------------------------------------------------------------
+
+def load_latest_checkpoint(model, device):
+    """Load the most recently modified model*.pt file if any exist."""
+    candidates = glob.glob("model*.pt")
+    if not candidates:
+        print("No checkpoint found — model uses random weights")
+        model.eval()
+        return False
+    latest = max(candidates, key=os.path.getmtime)
+    model.load_state_dict(torch.load(latest, map_location=device))
+    model.eval()
+    print(f"Loaded checkpoint: {latest}")
+    return True
+
+
+# ---------------------------------------------------------------------------
+# AI background thread worker (NO pygame calls inside)
+# ---------------------------------------------------------------------------
+
+def run_ai(neutral_state_copy, mcts, gs, ai_lock, ai_done_event):
+    """Run MCTS search in a background thread and store the result in gs."""
+    action_probs, root_value = mcts.search(neutral_state_copy)
+    action = np.unravel_index(np.argmax(action_probs), action_probs.shape)
+    with ai_lock:
+        gs["ai_action"] = action        # (src_idx, dest_idx) in neutral coordinates
+        gs["ai_value"]  = root_value    # scalar [-1, 1], AI's perspective
+    ai_done_event.set()
 
 
 # ---------------------------------------------------------------------------
@@ -226,11 +270,13 @@ def handle_click(pixel_pos: tuple, gs: dict, game: Chenapan) -> None:
     Process a mouse click at pixel_pos and update the gs state dict.
 
     gs keys used:
-        state           — current board numpy array
-        selected_cell   — (row, col) or None
-        game_state      — GameState enum value
-        ai_last_dest    — (row, col) or None
-        terminal_value  — int, set when game ends
+        state               — current board numpy array
+        selected_cell       — (row, col) or None
+        game_state          — GameState enum value
+        ai_last_dest        — (row, col) or None
+        terminal_value      — int, set when game ends
+        terminal_player     — int (1 = human, -1 = AI), set when game ends
+        ai_thread_launched  — bool, flag for AI thread state machine
     """
     px, py = pixel_pos
     col = (px - BOARD_OFFSET_X) // CELL_SIZE
@@ -265,41 +311,16 @@ def handle_click(pixel_pos: tuple, gs: dict, game: Chenapan) -> None:
         # Check terminal condition
         value, is_terminal = game.get_value_and_terminated(state, action)
         if is_terminal:
-            gs["terminal_value"] = value
-            gs["game_state"]     = GameState.GAME_OVER
+            gs["terminal_value"]  = value
+            gs["terminal_player"] = 1    # human just moved
+            gs["game_state"]      = GameState.GAME_OVER
         else:
-            # AI turn is stubbed — immediately return to WAITING_FOR_HUMAN
-            gs["game_state"] = GameState.WAITING_FOR_HUMAN
+            # Trigger AI turn
+            gs["game_state"]         = GameState.AI_THINKING
+            gs["ai_thread_launched"] = False
     else:
         # Not a valid destination — deselect without moving
         gs["selected_cell"] = None
-
-
-# ---------------------------------------------------------------------------
-# Game-over overlay
-# ---------------------------------------------------------------------------
-
-def draw_game_over(screen: pygame.Surface, terminal_value: int) -> None:
-    """Draw a semi-transparent overlay with result text and restart prompt."""
-    overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
-    overlay.fill((0, 0, 0, 160))
-    screen.blit(overlay, (0, 0))
-
-    font_big   = pygame.font.SysFont("Arial", 48, bold=True)
-    font_small = pygame.font.SysFont("Arial", 24)
-
-    if terminal_value == 1:
-        result_text = "You win!"
-    else:
-        result_text = "Draw"
-
-    result_surf = font_big.render(result_text, True, (255, 255, 255))
-    result_rect = result_surf.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 30))
-    screen.blit(result_surf, result_rect)
-
-    prompt_surf = font_small.render("Press any key to restart", True, TEXT_COLOR)
-    prompt_rect = prompt_surf.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 30))
-    screen.blit(prompt_surf, prompt_rect)
 
 
 # ---------------------------------------------------------------------------
@@ -314,20 +335,41 @@ def main() -> None:
     pygame.display.set_caption("Alpha-Pan")
     clock = pygame.time.Clock()
 
+    # --- Game and AI setup ---
     game  = Chenapan()
     state = game.get_initial_state()
 
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model  = AlphaPanNet(device)
+    load_latest_checkpoint(model, device)   # sets model.eval() internally
+
+    args = {
+        "C":                  2,
+        "num_searches":       60,
+        "dirichlet_epsilon":  0.1,
+        "dirichlet_alpha":    0.3,
+    }
+    mcts = MCTS(game, args, model)
+
+    ai_lock       = threading.Lock()
+    ai_done_event = threading.Event()
+
     gs = {
-        "state":          state,
-        "game_state":     GameState.WAITING_FOR_HUMAN,
-        "selected_cell":  None,
-        "ai_last_dest":   None,
-        "terminal_value": 0,
+        "state":             state,
+        "game_state":        GameState.WAITING_FOR_HUMAN,
+        "selected_cell":     None,
+        "ai_last_dest":      None,
+        "terminal_value":    0,
+        "terminal_player":   0,
+        "ai_action":         None,
+        "ai_value":          0.0,
+        "ai_thread_launched": False,
     }
 
-    ai_value = 0.0   # static 50/50 placeholder — Plan 02 wires real value
+    font_thinking = pygame.font.SysFont("Arial", 32, bold=True)
 
     while True:
+        # --- Event processing ---
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -339,14 +381,58 @@ def main() -> None:
 
             elif gs["game_state"] == GameState.GAME_OVER:
                 if event.type == pygame.KEYDOWN:
-                    # Restart
+                    # Restart the game
                     game.reset()
-                    gs["state"]          = game.get_initial_state()
-                    gs["game_state"]     = GameState.WAITING_FOR_HUMAN
-                    gs["selected_cell"]  = None
-                    gs["ai_last_dest"]   = None
-                    gs["terminal_value"] = 0
-                    ai_value             = 0.0
+                    gs["state"]              = game.get_initial_state()
+                    gs["game_state"]         = GameState.WAITING_FOR_HUMAN
+                    gs["selected_cell"]      = None
+                    gs["ai_last_dest"]       = None
+                    gs["terminal_value"]     = 0
+                    gs["terminal_player"]    = 0
+                    gs["ai_action"]          = None
+                    gs["ai_value"]           = 0.0
+                    gs["ai_thread_launched"] = False
+                    ai_done_event.clear()
+
+        # --- AI thread state machine (non-blocking) ---
+        if gs["game_state"] == GameState.AI_THINKING:
+            if not gs["ai_thread_launched"]:
+                # Launch AI search in background
+                neutral_state_copy = game.change_perspective(gs["state"]).copy()
+                ai_done_event.clear()
+                gs["ai_thread_launched"] = True
+                t = threading.Thread(
+                    target=run_ai,
+                    args=(neutral_state_copy, mcts, gs, ai_lock, ai_done_event),
+                    daemon=True,
+                )
+                t.start()
+            elif ai_done_event.is_set():
+                # AI computation done — read result and apply move
+                with ai_lock:
+                    ai_action = gs["ai_action"]   # (src_idx, dest_idx) in neutral coords
+                    ai_value  = gs["ai_value"]
+
+                gs["ai_value"] = ai_value
+
+                # Remap neutral coords back to original-state coords
+                # (rot180 maps position i -> position 24-i on a 25-cell board)
+                src_orig  = 24 - ai_action[0]
+                dest_orig = 24 - ai_action[1]
+                action    = [src_orig, dest_orig]
+
+                game.get_next_state(gs["state"], action, update_meta_parameters=True)
+                gs["ai_last_dest"]       = (dest_orig // 5, dest_orig % 5)
+                gs["ai_thread_launched"] = False
+
+                # Check terminal condition
+                value, is_terminal = game.get_value_and_terminated(gs["state"], action)
+                if is_terminal:
+                    gs["terminal_value"]  = value
+                    gs["terminal_player"] = -1   # AI just moved
+                    gs["game_state"]      = GameState.GAME_OVER
+                else:
+                    gs["game_state"] = GameState.WAITING_FOR_HUMAN
 
         # --- Render ---
         screen.fill(BOARD_BG)
@@ -360,10 +446,39 @@ def main() -> None:
             valid_moves,
             gs["ai_last_dest"],
         )
-        draw_panel(screen, game, ai_value)
+        draw_panel(screen, game, gs["ai_value"])
 
+        # "AI is thinking..." overlay text during computation
+        if gs["game_state"] == GameState.AI_THINKING:
+            thinking_surf = font_thinking.render("AI is thinking...", True, (200, 200, 255))
+            thinking_rect = thinking_surf.get_rect(
+                center=(BOARD_OFFSET_X + 5 * CELL_SIZE // 2, BOARD_OFFSET_Y + 5 * CELL_SIZE + 10)
+            )
+            # Clamp to visible area if near bottom edge
+            if thinking_rect.bottom > WINDOW_HEIGHT:
+                thinking_rect.bottom = WINDOW_HEIGHT - 4
+            screen.blit(thinking_surf, thinking_rect)
+
+        # Game-over overlay
         if gs["game_state"] == GameState.GAME_OVER:
-            draw_game_over(screen, gs["terminal_value"])
+            overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 160))
+            screen.blit(overlay, (0, 0))
+
+            if gs["terminal_value"] == 1:
+                if gs["terminal_player"] == 1:
+                    result_text = "You win"
+                else:
+                    result_text = "AI wins"
+            else:
+                result_text = "Draw"
+
+            font_big   = pygame.font.SysFont("Arial", 56)
+            font_small = pygame.font.SysFont("Arial", 28)
+            t1 = font_big.render(result_text, True, (255, 255, 255))
+            t2 = font_small.render("Press any key to restart", True, (200, 200, 200))
+            screen.blit(t1, t1.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 30)))
+            screen.blit(t2, t2.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 30)))
 
         pygame.display.flip()
         clock.tick(30)
