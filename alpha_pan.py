@@ -852,8 +852,8 @@ class AlphaPan():
                 f"NonWinRate={(total_games - win_count)/total_games:.2%}"
             )
 
-            torch.save(self.model.state_dict(),f"model_{iteration}.pt")
-            torch.save(self.optimizer.state_dict(),f"optim_{iteration}.pt")
+            torch.save(self.model.state_dict(), "model.pt")
+            torch.save(self.optimizer.state_dict(), "optim.pt")
 
 if __name__ == "__main__":
     game = Chenapan()
