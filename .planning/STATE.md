@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-12T16:15:30.540Z"
+last_updated: "2026-03-12T16:51:09.466Z"
 progress:
   total_phases: 1
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -22,29 +22,29 @@ See: .planning/PROJECT.md (updated 2026-03-12)
 
 ## Current Position
 
-Phase: 1 of 2 (Training Foundation)
-Plan: 1 of 2 in current phase
-Status: In Progress
-Last activity: 2026-03-12 — Completed plan 01-01 (four training correctness bugs fixed)
+Phase: 1 of 1 (Training Foundation)
+Plan: 2 of 2 in current phase — COMPLETE
+Status: Phase Complete
+Last activity: 2026-03-12 — Completed plan 01-02 (residual architecture, pipeline hardening)
 
-Progress: [█░░░░░░░░░] 50%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 15 min
-- Total execution time: 15 min
+- Total plans completed: 2
+- Average duration: 19 min
+- Total execution time: 37 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-training-foundation | 1 | 15 min | 15 min |
+| 01-training-foundation | 2 | 37 min | 19 min |
 
 **Recent Trend:**
-- Last 5 plans: 15 min
-- Trend: -
+- Last 5 plans: 15 min, 22 min
+- Trend: stable
 
 *Updated after each plan completion*
 
@@ -60,6 +60,8 @@ Recent decisions affecting current work:
 - Two-file structure: alpha_pan.py (core) + gui.py (new) — __main__ guard enables safe import
 - [Phase 01-training-foundation]: Draw value = -1 (not 0): prevents value head collapse toward zero when draws and losses dominate early training
 - [Phase 01-training-foundation]: hashlib.md5 over Python hash(): Python hash() is PYTHONHASHSEED-randomized since 3.3; md5 on tobytes() is stable across runs
+- [Phase 01-training-foundation]: Residual architecture over deconv tower: skip connections prevent vanishing gradients, start_block projects 5 channels to 64 hidden
+- [Phase 01-training-foundation]: NonWinRate label used instead of DrawRate: outcome -1 is indistinguishable between draw and loss from memory tuple alone
 
 ### Pending Todos
 
@@ -73,5 +75,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-12
-Stopped at: Completed 01-training-foundation-01-PLAN.md — four training bugs fixed, ready for Plan 02 pipeline hardening
+Stopped at: Completed 01-training-foundation-02-PLAN.md — residual architecture, __main__ guard, console logging, production hyperparameters. Phase 1 complete.
 Resume file: None

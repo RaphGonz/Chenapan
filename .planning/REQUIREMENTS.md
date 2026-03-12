@@ -14,14 +14,14 @@
 
 ### Training Pipeline
 
-- [ ] **PIPE-01**: `if __name__ == "__main__":` guard wraps training entry point — required so `gui.py` can import from `alpha_pan` without triggering a training run
-- [ ] **PIPE-02**: `tqdm.notebook` import replaced with plain `tqdm` — current import breaks when running as a standalone script outside Jupyter
-- [ ] **PIPE-03**: Per-iteration loss (policy + value) and game outcome (win/draw rate) logged to console during training — training is a black box without it
-- [ ] **PIPE-04**: Hyperparameter config block at top of file with real training values — current defaults (`num_iterations=3`, `num_selfPlay_iterations=1`) produce zero meaningful learning; scale to 50–200 iterations with 50–200 games per iteration
+- [x] **PIPE-01**: `if __name__ == "__main__":` guard wraps training entry point — required so `gui.py` can import from `alpha_pan` without triggering a training run
+- [x] **PIPE-02**: `tqdm.notebook` import replaced with plain `tqdm` — current import breaks when running as a standalone script outside Jupyter
+- [x] **PIPE-03**: Per-iteration loss (policy + value) and game outcome (win/draw rate) logged to console during training — training is a black box without it
+- [x] **PIPE-04**: Hyperparameter config block at top of file with real training values — current defaults (`num_iterations=3`, `num_selfPlay_iterations=1`) produce zero meaningful learning; scale to 50–200 iterations with 50–200 games per iteration
 
 ### Model Architecture
 
-- [ ] **MODEL-01**: `AlphaPanNet` rebuilt with residual blocks (AlphaZero-style skip connections) — enables deeper training without vanishing gradients; suitable for GPU training
+- [x] **MODEL-01**: `AlphaPanNet` rebuilt with residual blocks (AlphaZero-style skip connections) — enables deeper training without vanishing gradients; suitable for GPU training
 
 ### GUI
 
@@ -65,11 +65,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TRAIN-02 | Phase 1 | Complete |
 | TRAIN-03 | Phase 1 | Complete |
 | TRAIN-04 | Phase 1 | Complete |
-| PIPE-01 | Phase 1 | Pending |
-| PIPE-02 | Phase 1 | Pending |
-| PIPE-03 | Phase 1 | Pending |
-| PIPE-04 | Phase 1 | Pending |
-| MODEL-01 | Phase 1 | Pending |
+| PIPE-01 | Phase 1 | Complete |
+| PIPE-02 | Phase 1 | Complete |
+| PIPE-03 | Phase 1 | Complete |
+| PIPE-04 | Phase 1 | Complete |
+| MODEL-01 | Phase 1 | Complete |
 | GUI-01 | Phase 2 | Pending |
 | GUI-02 | Phase 2 | Pending |
 | GUI-03 | Phase 2 | Pending |
