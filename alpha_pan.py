@@ -719,7 +719,8 @@ class AlphaPan():
         self.args = args
         
         self.mcts = MCTS(game, args, model)
-        
+        self.replay_buffer = []
+
     def selfPlay(self):
         memory = []
         player = 1
@@ -813,7 +814,7 @@ class AlphaPan():
     
     def learn(self):
         for iteration in range(self.args['num_iterations']):
-            memory = []
+            iteration_memory = []
 
             self.model.eval()
 
@@ -822,17 +823,19 @@ class AlphaPan():
             move_limit_count = 0
             for selfPlay_iteration in trange(self.args['num_selfPlay_iterations'], desc=f"Iter {iteration:03d} self-play"):
                 game_memory = self.selfPlay()
-                memory += game_memory
+                iteration_memory += game_memory
                 if game_memory:
                     last_outcome = game_memory[-1][2]
                     if last_outcome == 1:
                         win_count += 1
                     else:
-                        # Determine why the game ended without a win
                         if self.game.biggest_loop >= MAX_NUMBER_OF_TIME_STATE_CAN_BE_VISITED:
                             loop_count += 1
                         elif self.game.number_of_moves >= MAX_NUMBER_OF_MOVES:
                             move_limit_count += 1
+
+            self.replay_buffer += iteration_memory
+            self.replay_buffer = self.replay_buffer[-self.args['replay_buffer_size']:]
 
             self.model.train()
 
@@ -840,7 +843,7 @@ class AlphaPan():
             total_value_loss = 0.0
             num_batches_total = 0
             for epochs in trange(self.args['num_epochs'], desc=f"Iter {iteration:03d} training"):
-                pl, vl, nb = self.train(memory)
+                pl, vl, nb = self.train(self.replay_buffer)
                 total_policy_loss += pl
                 total_value_loss += vl
                 num_batches_total += nb
@@ -851,6 +854,7 @@ class AlphaPan():
             other_count = total_games - win_count - loop_count - move_limit_count
             print(
                 f"Iter {iteration:03d} | "
+                f"BufferSize={len(self.replay_buffer)} | "
                 f"PolicyLoss={avg_pl:.4f} | "
                 f"ValueLoss={avg_vl:.4f} | "
                 f"WinRate={win_count/total_games:.2%} | "
@@ -874,11 +878,12 @@ if __name__ == "__main__":
         'num_searches': 60,
         'num_iterations': 50,           # was 3 — scale to 100 for real learning
         'num_selfPlay_iterations': 100,  # was 1 — scale to 100 games/iteration
-        'num_epochs': 4,
+        'num_epochs': 2,
         'batch_size': 64,
         'temperature': 1.25,
         'dirichlet_epsilon': 0.1,
-        'dirichlet_alpha': 0.3
+        'dirichlet_alpha': 0.3,
+        'replay_buffer_size': 30_000  # ~10 iterations of data; evicts oldest samples automatically
     }
 
     alphaPan = AlphaPan(model,optimizer,game,args)
