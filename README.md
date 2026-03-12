@@ -17,7 +17,7 @@ Alpha-Pan trains a neural network agent to play Chenapan using self-play reinfor
 - **`MCTS`** — Monte Carlo Tree Search guided by the neural network prior
 - **`AlphaPan`** — training loop: self-play data generation, replay buffer, network optimization
 
-## Usage
+## Training
 
 ```bash
 python alpha_pan.py
@@ -35,9 +35,40 @@ To use the trained model in another script without triggering a training run:
 from alpha_pan import Chenapan, AlphaPanNet, MCTS, AlphaPan
 ```
 
+## Playing
+
+```bash
+python gui.py
+```
+
+Opens a pygame window to play Chenapan against the AI. `model.pt` is loaded automatically on startup (random weights if no checkpoint exists).
+
+- **Click a piece** to select it — valid destinations are highlighted
+- **Click a destination** to move
+- **Click elsewhere** to deselect
+- You play as red (first to move); the AI plays as black
+
+The side panel shows the move counter, draw loop tracker, and a win probability bar updated after each AI move.
+
+When the game ends an overlay shows the result. **Press any key** to restart.
+
+## Piece notation
+
+| Label | Piece |
+|-------|-------|
+| 0 | Joker (white) |
+| A | 1 |
+| 2–9 | Face value |
+| V | 10 |
+| D | 11 |
+| R | 12 |
+
+Red disks = player 1 (positive values), black disks = player 2 (negative values).
+
 ## Requirements
 
 - Python 3.x
 - PyTorch
 - NumPy
 - tqdm
+- pygame-ce (`pip install pygame-ce`)
