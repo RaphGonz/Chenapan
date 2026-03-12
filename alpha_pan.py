@@ -818,17 +818,21 @@ class AlphaPan():
             self.model.eval()
 
             win_count = 0
-            draw_count = 0
+            loop_count = 0
+            move_limit_count = 0
             for selfPlay_iteration in trange(self.args['num_selfPlay_iterations'], desc=f"Iter {iteration:03d} self-play"):
                 game_memory = self.selfPlay()
                 memory += game_memory
-                # Inspect last tuple's outcome: +1 = win, -1 = non-win (draw or loss)
                 if game_memory:
                     last_outcome = game_memory[-1][2]
                     if last_outcome == 1:
                         win_count += 1
-                    elif last_outcome == -1:
-                        draw_count += 1
+                    else:
+                        # Determine why the game ended without a win
+                        if self.game.biggest_loop >= MAX_NUMBER_OF_TIME_STATE_CAN_BE_VISITED:
+                            loop_count += 1
+                        elif self.game.number_of_moves >= MAX_NUMBER_OF_MOVES:
+                            move_limit_count += 1
 
             self.model.train()
 
@@ -844,12 +848,15 @@ class AlphaPan():
             avg_pl = total_policy_loss / max(num_batches_total, 1)
             avg_vl = total_value_loss / max(num_batches_total, 1)
             total_games = self.args['num_selfPlay_iterations']
+            other_count = total_games - win_count - loop_count - move_limit_count
             print(
                 f"Iter {iteration:03d} | "
                 f"PolicyLoss={avg_pl:.4f} | "
                 f"ValueLoss={avg_vl:.4f} | "
                 f"WinRate={win_count/total_games:.2%} | "
-                f"NonWinRate={(total_games - win_count)/total_games:.2%}"
+                f"LoopRate={loop_count/total_games:.2%} | "
+                f"MoveLimitRate={move_limit_count/total_games:.2%} | "
+                f"OtherNonWinRate={other_count/total_games:.2%}"
             )
 
             torch.save(self.model.state_dict(), "model.pt")
