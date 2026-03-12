@@ -751,12 +751,12 @@ class AlphaPan():
                 action_probs = self.mcts.search(state)
                 
                 memory.append((state,action_probs,player))
-                
-                temperature_action_probs = action_probs ** (1/self.args["temperature"])
-                
-                action_float = np.random.choice(self.game.action_size*self.game.action_size, p = np.matrix.flatten(action_probs))
+
+                temperature_action_probs = action_probs ** (1.0 / self.args["temperature"])
+                temperature_action_probs /= np.sum(temperature_action_probs)  # re-normalize to sum=1
+                action_float = np.random.choice(self.game.action_size*self.game.action_size, p=np.matrix.flatten(temperature_action_probs))
                 action = (action_float//self.game.action_size,action_float%self.game.action_size)
-                
+
                 state = self.game.get_next_state(state, action)
                
                 
@@ -765,10 +765,10 @@ class AlphaPan():
                 action_probs = self.mcts.search(neutral_state)
                 
                 memory.append((neutral_state,action_probs,player))
-                
-                temperature_action_probs = action_probs ** (1/self.args["temperature"])
-                
-                action_float = np.random.choice(self.game.action_size*self.game.action_size, p = np.matrix.flatten(action_probs))
+
+                temperature_action_probs = action_probs ** (1.0 / self.args["temperature"])
+                temperature_action_probs /= np.sum(temperature_action_probs)  # re-normalize to sum=1
+                action_float = np.random.choice(self.game.action_size*self.game.action_size, p=np.matrix.flatten(temperature_action_probs))
                 action = (action_float//self.game.action_size,action_float%self.game.action_size)
                 
                 neutral_state = self.game.get_next_state(neutral_state, action)
@@ -796,7 +796,7 @@ class AlphaPan():
     def train(self,memory):
         random.shuffle(memory)
         for batchIndex in range(0,len(memory),self.args["batch_size"]):
-            sample = memory[batchIndex:min(len(memory)-1,batchIndex + self.args["batch_size"])]
+            sample = memory[batchIndex:min(len(memory), batchIndex + self.args["batch_size"])]
             state, policy_targets, value_targets = zip(*sample) #ça créé 3 listes à partir de la liste des tuples 
             state, policy_targets, value_targets = np.array(state),np.array(policy_targets),np.array(value_targets).reshape(-1,1)
             
