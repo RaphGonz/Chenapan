@@ -25,8 +25,8 @@
 
 ### GUI
 
-- [ ] **GUI-01**: pygame-ce window renders 5×5 board with piece values visible for both players
-- [ ] **GUI-02**: Human player selects a piece then clicks destination to move; valid destinations highlighted after piece selection
+- [x] **GUI-01**: pygame-ce window renders 5×5 board with piece values visible for both players
+- [x] **GUI-02**: Human player selects a piece then clicks destination to move; valid destinations highlighted after piece selection
 - [ ] **GUI-03**: AI move computed in background thread — prevents window freeze/"(Not Responding)" during MCTS search; required architectural decision from day one
 - [ ] **GUI-04**: Game-over screen displays outcome (win/loss/draw); pressing a key restarts the game without relaunching the program
 - [ ] **GUI-05**: Latest model checkpoint auto-detected and loaded on startup with `model.eval()` — ensures correct inference mode (BatchNorm/Dropout behave differently in training mode)
@@ -70,8 +70,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PIPE-03 | Phase 1 | Complete |
 | PIPE-04 | Phase 1 | Complete |
 | MODEL-01 | Phase 1 | Complete |
-| GUI-01 | Phase 2 | Pending |
-| GUI-02 | Phase 2 | Pending |
+| GUI-01 | Phase 2 | Complete |
+| GUI-02 | Phase 2 | Complete |
 | GUI-03 | Phase 2 | Pending |
 | GUI-04 | Phase 2 | Pending |
 | GUI-05 | Phase 2 | Pending |
@@ -83,4 +83,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-03-12*
-*Last updated: 2026-03-12 after initial definition*
+*Last updated: 2026-03-12 after plan 02-01 completion (GUI-01, GUI-02 marked complete)*

@@ -30,8 +30,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Fix four training bugs: draw value (-1), temperature sampling, deterministic hashing, batch slice off-by-one
-- [ ] 01-02-PLAN.md — Upgrade AlphaPanNet to residual architecture; fix tqdm import, add __main__ guard, add per-iteration logging, set real hyperparameters
+- [x] 01-01-PLAN.md — Fix four training bugs: draw value (-1), temperature sampling, deterministic hashing, batch slice off-by-one (completed 2026-03-12)
+- [x] 01-02-PLAN.md — Upgrade AlphaPanNet to residual architecture; fix tqdm import, add __main__ guard, add per-iteration logging, set real hyperparameters (completed 2026-03-12)
 
 ### Phase 2: Pygame GUI
 **Goal**: A playable human-vs-AI window where a human plays Chenapan against the strongest available checkpoint
@@ -46,7 +46,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Board rendering, piece display (custom notation), click-to-move with valid-move highlighting, side panel with move counter and draw loop tracker
+- [x] 02-01-PLAN.md — Board rendering, piece display (custom notation), click-to-move with valid-move highlighting, side panel with move counter and draw loop tracker (completed 2026-03-12)
 - [ ] 02-02-PLAN.md — AI background thread, MCTS.search() value return, checkpoint auto-load with model.eval(), game-over overlay, win probability bar
 
 ## Progress
@@ -57,4 +57,4 @@ Phases execute in numeric order: 1 → 2
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Training Foundation | 2/2 | Complete   | 2026-03-12 |
-| 2. Pygame GUI | 0/2 | Not started | - |
+| 2. Pygame GUI | 1/2 | In Progress | - |
