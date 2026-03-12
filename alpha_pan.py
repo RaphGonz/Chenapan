@@ -18,7 +18,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-from tqdm.notebook import trange
+from tqdm import trange
 
 #plateau inital
 
@@ -838,25 +838,26 @@ class AlphaPan():
             torch.save(self.model.state_dict(),f"model_{iteration}.pt")
             torch.save(self.optimizer.state_dict(),f"optim_{iteration}.pt")
 
-game = Chenapan()
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = AlphaPanNet(device)
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
+if __name__ == "__main__":
+    game = Chenapan()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = AlphaPanNet(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
 
-args = {
-    'C': 2,
-    'num_searches': 60,
-    'num_iterations': 3,
-    'num_selfPlay_iterations': 1,
-    'num_epochs': 1,
-    'batch_size': 64,
-    'temperature' : 1.25,
-    'dirichlet_epsilon': 0.1,
-    'dirichlet_alpha':0.3
-}
+    args = {
+        'C': 2,
+        'num_searches': 60,
+        'num_iterations': 3,
+        'num_selfPlay_iterations': 1,
+        'num_epochs': 1,
+        'batch_size': 64,
+        'temperature' : 1.25,
+        'dirichlet_epsilon': 0.1,
+        'dirichlet_alpha':0.3
+    }
 
-alphaPan = AlphaPan(model,optimizer,game,args)
-alphaPan.learn()
+    alphaPan = AlphaPan(model,optimizer,game,args)
+    alphaPan.learn()
     
 # chenapan = Chenapan()
 # player = 1
