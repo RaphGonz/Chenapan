@@ -872,7 +872,7 @@ if __name__ == "__main__":
     args = {
         'C': 2,
         'num_searches': 60,
-        'num_iterations': 100,           # was 3 — scale to 100 for real learning
+        'num_iterations': 50,           # was 3 — scale to 100 for real learning
         'num_selfPlay_iterations': 100,  # was 1 — scale to 100 games/iteration
         'num_epochs': 4,
         'batch_size': 64,
