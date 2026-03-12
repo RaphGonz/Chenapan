@@ -13,7 +13,7 @@ Alpha-Pan's existing codebase has the full RL pipeline in place but four correct
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Training Foundation** - Fix all four training bugs, upgrade the network architecture, and configure the pipeline for real learning (completed 2026-03-12)
-- [ ] **Phase 2: Pygame GUI** - Build a playable human-vs-AI window with correct rendering, click-to-move, and background AI computation
+- [x] **Phase 2: Pygame GUI** - Build a playable human-vs-AI window with correct rendering, click-to-move, and background AI computation (completed 2026-03-12)
 
 ## Phase Details
 
@@ -57,4 +57,4 @@ Phases execute in numeric order: 1 → 2
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Training Foundation | 2/2 | Complete   | 2026-03-12 |
-| 2. Pygame GUI | 1/2 | In Progress | - |
+| 2. Pygame GUI | 2/2 | Complete   | 2026-03-12 |

@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: in_progress
-last_updated: "2026-03-12T18:30:19Z"
+status: complete
+last_updated: "2026-03-12T18:53:53.123Z"
 progress:
   total_phases: 2
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -22,29 +22,29 @@ See: .planning/PROJECT.md (updated 2026-03-12)
 
 ## Current Position
 
-Phase: 2 of 2 (Pygame GUI)
-Plan: 1 of 2 in current phase — COMPLETE
-Status: In Progress
-Last activity: 2026-03-12 — Completed plan 02-01 (gui.py board rendering, click-to-move, side panel)
+Phase: 2 of 2 (Pygame GUI) — COMPLETE
+Plan: 2 of 2 in current phase — COMPLETE
+Status: Complete
+Last activity: 2026-03-12 — Completed plan 02-02 (AI background thread, checkpoint load, game-over screen, win probability bar)
 
-Progress: [███████░░░] 75%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Average duration: 19 min
-- Total execution time: 37 min
+- Total plans completed: 4
+- Average duration: 12 min
+- Total execution time: 47 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-training-foundation | 2 | 37 min | 19 min |
-| 02-pygame-gui | 1 | 7 min | 7 min |
+| 02-pygame-gui | 2 | 17 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: 15 min, 22 min, 7 min
+- Last 5 plans: 15 min, 22 min, 7 min, 10 min
 - Trend: stable
 
 *Updated after each plan completion*
@@ -65,6 +65,9 @@ Recent decisions affecting current work:
 - [Phase 01-training-foundation]: NonWinRate label used instead of DrawRate: outcome -1 is indistinguishable between draw and loss from memory tuple alone
 - [Phase 02-pygame-gui]: Single gs dict in main() for mutable game state — avoids Python closure issues with primitives
 - [Phase 02-pygame-gui]: SRCALPHA per-surface overlays for highlights — allows semi-transparent yellow/blue cell overlays over board background
+- [Phase 02-pygame-gui]: root_value captured at MCTS root's first model call — represents confidence from current board position
+- [Phase 02-pygame-gui]: terminal_player flag in gs disambiguates You win / AI wins / Draw in game-over overlay
+- [Phase 02-pygame-gui]: Neutral-to-original coord remap: src_orig = 24 - src_idx for rot180 inverse on 25-cell board
 
 ### Pending Todos
 
@@ -78,5 +81,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-12
-Stopped at: Completed 02-pygame-gui-01-PLAN.md — gui.py with board rendering, click-to-move, side panel. Plan 02-01 complete.
+Stopped at: Completed 02-pygame-gui-02-PLAN.md — full human-vs-AI loop with AI background thread, checkpoint auto-load, game-over overlay, win probability bar. All phases complete.
 Resume file: None
