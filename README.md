@@ -23,7 +23,7 @@ Alpha-Pan trains a neural network agent to play Chenapan using self-play reinfor
 python alpha_pan.py
 ```
 
-Trains for 100 iterations, saving model checkpoints (`model_{n}.pt`) after each one. Per-iteration logs are printed to console:
+Trains for 100 iterations, overwriting `model.pt` and `optim.pt` after each one. Per-iteration logs are printed to console:
 
 ```
 Iter 000 | PolicyLoss=0.7839 | ValueLoss=0.9753 | WinRate=0.00% | NonWinRate=100.00%
