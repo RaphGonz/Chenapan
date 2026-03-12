@@ -7,10 +7,10 @@
 
 ### Training Bug Fixes
 
-- [ ] **TRAIN-01**: Draw outcome returns -1 in `get_value_and_terminated()` — eliminates value head collapse where network learns to always predict ~0
-- [ ] **TRAIN-02**: Temperature applied to action probability sampling in `selfPlay()` — `temperature_action_probs` was computed but raw `action_probs` sampled (exploration was dead code)
-- [ ] **TRAIN-03**: Board hashing uses `hashlib.md5(state.tobytes())` instead of Python's session-randomized `hash()` — draw-by-repetition detection was silently broken across runs
-- [ ] **TRAIN-04**: Replay buffer batch slice uses `len(memory)` not `len(memory)-1` — last element was silently excluded from every training batch
+- [x] **TRAIN-01**: Draw outcome returns -1 in `get_value_and_terminated()` — eliminates value head collapse where network learns to always predict ~0
+- [x] **TRAIN-02**: Temperature applied to action probability sampling in `selfPlay()` — `temperature_action_probs` was computed but raw `action_probs` sampled (exploration was dead code)
+- [x] **TRAIN-03**: Board hashing uses `hashlib.md5(state.tobytes())` instead of Python's session-randomized `hash()` — draw-by-repetition detection was silently broken across runs
+- [x] **TRAIN-04**: Replay buffer batch slice uses `len(memory)` not `len(memory)-1` — last element was silently excluded from every training batch
 
 ### Training Pipeline
 
@@ -61,10 +61,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TRAIN-01 | Phase 1 | Pending |
-| TRAIN-02 | Phase 1 | Pending |
-| TRAIN-03 | Phase 1 | Pending |
-| TRAIN-04 | Phase 1 | Pending |
+| TRAIN-01 | Phase 1 | Complete |
+| TRAIN-02 | Phase 1 | Complete |
+| TRAIN-03 | Phase 1 | Complete |
+| TRAIN-04 | Phase 1 | Complete |
 | PIPE-01 | Phase 1 | Pending |
 | PIPE-02 | Phase 1 | Pending |
 | PIPE-03 | Phase 1 | Pending |

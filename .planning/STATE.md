@@ -1,3 +1,16 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: unknown
+last_updated: "2026-03-12T16:15:30.540Z"
+progress:
+  total_phases: 1
+  completed_phases: 0
+  total_plans: 2
+  completed_plans: 1
+---
+
 # Project State
 
 ## Project Reference
@@ -10,27 +23,27 @@ See: .planning/PROJECT.md (updated 2026-03-12)
 ## Current Position
 
 Phase: 1 of 2 (Training Foundation)
-Plan: 0 of 2 in current phase
-Status: Ready to plan
-Last activity: 2026-03-12 — Roadmap created
+Plan: 1 of 2 in current phase
+Status: In Progress
+Last activity: 2026-03-12 — Completed plan 01-01 (four training correctness bugs fixed)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: -
-- Total execution time: -
+- Total plans completed: 1
+- Average duration: 15 min
+- Total execution time: 15 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01-training-foundation | 1 | 15 min | 15 min |
 
 **Recent Trend:**
-- Last 5 plans: -
+- Last 5 plans: 15 min
 - Trend: -
 
 *Updated after each plan completion*
@@ -45,6 +58,8 @@ Recent decisions affecting current work:
 - Draw value = -1 (not 0): Forces aggressive play, prevents value head collapse to zero
 - pygame-ce over upstream pygame: CE has active development and recent release cadence
 - Two-file structure: alpha_pan.py (core) + gui.py (new) — __main__ guard enables safe import
+- [Phase 01-training-foundation]: Draw value = -1 (not 0): prevents value head collapse toward zero when draws and losses dominate early training
+- [Phase 01-training-foundation]: hashlib.md5 over Python hash(): Python hash() is PYTHONHASHSEED-randomized since 3.3; md5 on tobytes() is stable across runs
 
 ### Pending Todos
 
@@ -58,5 +73,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-12
-Stopped at: Roadmap created, Phase 1 ready to plan
+Stopped at: Completed 01-training-foundation-01-PLAN.md — four training bugs fixed, ready for Plan 02 pipeline hardening
 Resume file: None
