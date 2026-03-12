@@ -27,11 +27,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Temperature is applied to action sampling during self-play — exploration is live, not dead code
   4. Running the script twice produces identical draw-detection results — board hashing is deterministic
   5. `from alpha_pan import Chenapan, AlphaPanNet, MCTS, AlphaPan` in a separate file does not trigger a training run
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: Fix four training bugs (draw value, temperature sampling, board hashing, batch slice)
-- [ ] 01-02: Upgrade AlphaPanNet to residual architecture and configure training pipeline (hyperparams, tqdm, logging, __main__ guard)
+- [ ] 01-01-PLAN.md — Fix four training bugs: draw value (-1), temperature sampling, deterministic hashing, batch slice off-by-one
+- [ ] 01-02-PLAN.md — Upgrade AlphaPanNet to residual architecture; fix tqdm import, add __main__ guard, add per-iteration logging, set real hyperparameters
 
 ### Phase 2: Pygame GUI
 **Goal**: A playable human-vs-AI window where a human plays Chenapan against the strongest available checkpoint
