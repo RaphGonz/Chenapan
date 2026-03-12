@@ -646,8 +646,8 @@ class MCTS:
         #definir root
         root = Node(self.game, self.args, state,visit_count=1)
         
-        policy,_ = self.model(
-            
+        policy, root_value = self.model(
+
             torch.tensor( self.game.get_encoded_state(state), device=self.model.device).unsqueeze(0)
         )
         policy = torch.softmax(policy,axis=2).squeeze(0).squeeze(0).cpu().numpy()
@@ -709,7 +709,7 @@ class MCTS:
             
         if np.sum(action_probs) > 0:
             action_probs /= np.sum(action_probs)
-        return action_probs
+        return action_probs, root_value.item()
     
 class AlphaPan():
     def __init__(self,model,optimizer,game,args):
@@ -732,8 +732,8 @@ class AlphaPan():
            
             if player == 1:
                 
-                action_probs = self.mcts.search(state)
-                
+                action_probs, _ = self.mcts.search(state)
+
                 memory.append((state,action_probs,player))
 
                 temperature_action_probs = action_probs ** (1.0 / self.args["temperature"])
@@ -746,8 +746,8 @@ class AlphaPan():
                 
             if player == -1:
                 neutral_state = self.game.change_perspective(state)
-                action_probs = self.mcts.search(neutral_state)
-                
+                action_probs, _ = self.mcts.search(neutral_state)
+
                 memory.append((neutral_state,action_probs,player))
 
                 temperature_action_probs = action_probs ** (1.0 / self.args["temperature"])
