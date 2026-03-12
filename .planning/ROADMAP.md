@@ -1,0 +1,60 @@
+# Roadmap: Alpha-Pan
+
+## Overview
+
+Alpha-Pan's existing codebase has the full RL pipeline in place but four correctness bugs corrupt the training signal, and there are no hyperparameter values that produce real learning. Phase 1 fixes all four bugs, upgrades the architecture, and configures the training pipeline to produce a genuine checkpoint. Phase 2 builds a pygame GUI on top of that working system so a human can play against the trained AI.
+
+## Phases
+
+**Phase Numbering:**
+- Integer phases (1, 2, 3): Planned milestone work
+- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+
+Decimal phases appear between their surrounding integers in numeric order.
+
+- [ ] **Phase 1: Training Foundation** - Fix all four training bugs, upgrade the network architecture, and configure the pipeline for real learning
+- [ ] **Phase 2: Pygame GUI** - Build a playable human-vs-AI window with correct rendering, click-to-move, and background AI computation
+
+## Phase Details
+
+### Phase 1: Training Foundation
+**Goal**: A correct, observable training pipeline that produces a checkpoint representing genuine learning
+**Depends on**: Nothing (first phase)
+**Requirements**: TRAIN-01, TRAIN-02, TRAIN-03, TRAIN-04, PIPE-01, PIPE-02, PIPE-03, PIPE-04, MODEL-01
+**Success Criteria** (what must be TRUE):
+  1. Training runs to completion with per-iteration policy loss, value loss, and win/draw rate printed to console
+  2. Draw outcomes are penalized identically to losses — the value head cannot collapse to predicting zero
+  3. Temperature is applied to action sampling during self-play — exploration is live, not dead code
+  4. Running the script twice produces identical draw-detection results — board hashing is deterministic
+  5. `from alpha_pan import Chenapan, AlphaPanNet, MCTS, AlphaPan` in a separate file does not trigger a training run
+**Plans**: TBD
+
+Plans:
+- [ ] 01-01: Fix four training bugs (draw value, temperature sampling, board hashing, batch slice)
+- [ ] 01-02: Upgrade AlphaPanNet to residual architecture and configure training pipeline (hyperparams, tqdm, logging, __main__ guard)
+
+### Phase 2: Pygame GUI
+**Goal**: A playable human-vs-AI window where a human plays Chenapan against the strongest available checkpoint
+**Depends on**: Phase 1
+**Requirements**: GUI-01, GUI-02, GUI-03, GUI-04, GUI-05
+**Success Criteria** (what must be TRUE):
+  1. The 5x5 board with all piece values visible renders in a pygame window when `python gui.py` is run
+  2. Clicking a piece highlights valid destinations; clicking a destination completes the move
+  3. The window remains responsive and redraws during AI computation — no "(Not Responding)" freeze
+  4. When the game ends a result screen appears; pressing a key restarts without relaunching the program
+  5. The highest-numbered checkpoint is loaded automatically on startup and the model is in eval mode
+**Plans**: TBD
+
+Plans:
+- [ ] 02-01: Board rendering, piece display, click-to-move with valid move highlighting
+- [ ] 02-02: AI background thread, checkpoint auto-load with model.eval(), game-over screen and restart
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 1 → 2
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 1. Training Foundation | 0/2 | Not started | - |
+| 2. Pygame GUI | 0/2 | Not started | - |
