@@ -795,46 +795,79 @@ class AlphaPan():
     
     def train(self,memory):
         random.shuffle(memory)
+        policy_loss_sum = 0.0
+        value_loss_sum = 0.0
+        num_batches = 0
         for batchIndex in range(0,len(memory),self.args["batch_size"]):
             sample = memory[batchIndex:min(len(memory), batchIndex + self.args["batch_size"])]
-            state, policy_targets, value_targets = zip(*sample) #ça créé 3 listes à partir de la liste des tuples 
+            state, policy_targets, value_targets = zip(*sample) #ça créé 3 listes à partir de la liste des tuples
             state, policy_targets, value_targets = np.array(state),np.array(policy_targets),np.array(value_targets).reshape(-1,1)
-            
+
             state = torch.tensor(state, dtype=torch.float32, device=self.model.device)
             policy_targets = torch.tensor(policy_targets, dtype=torch.float32, device=self.model.device)
             value_targets = torch.tensor(value_targets, dtype=torch.float32, device=self.model.device)
-            
+
             out_policy, out_value = self.model(state)
-            
+
             if out_policy.dim() == 4:
                 out_policy = out_policy.squeeze(1)  # devient (B, 25, 25)
-            
+
             policy_loss = F.binary_cross_entropy_with_logits(out_policy,policy_targets)
             value_loss = F.mse_loss(out_value,value_targets)
-            
+
             loss = policy_loss + value_loss
-            
+
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
+
+            policy_loss_sum += policy_loss.item()
+            value_loss_sum += value_loss.item()
+            num_batches += 1
+        return policy_loss_sum, value_loss_sum, num_batches
         
     
     def learn(self):
         for iteration in range(self.args['num_iterations']):
             memory = []
-            
+
             self.model.eval()
-            
-            for selfPlay_iteration in range(self.args['num_selfPlay_iterations']):
-                print(f"this is the {selfPlay_iteration}th game")
-                memory += self.selfPlay()
-             
+
+            win_count = 0
+            draw_count = 0
+            for selfPlay_iteration in trange(self.args['num_selfPlay_iterations'], desc=f"Iter {iteration:03d} self-play"):
+                game_memory = self.selfPlay()
+                memory += game_memory
+                # Inspect last tuple's outcome: +1 = win, -1 = non-win (draw or loss)
+                if game_memory:
+                    last_outcome = game_memory[-1][2]
+                    if last_outcome == 1:
+                        win_count += 1
+                    elif last_outcome == -1:
+                        draw_count += 1
+
             self.model.train()
-            
-            for epochs in range(self.args['num_epochs']):
-                print(f"this is the {epochs}th epoch")
-                self.train(memory)
-                
+
+            total_policy_loss = 0.0
+            total_value_loss = 0.0
+            num_batches_total = 0
+            for epochs in trange(self.args['num_epochs'], desc=f"Iter {iteration:03d} training"):
+                pl, vl, nb = self.train(memory)
+                total_policy_loss += pl
+                total_value_loss += vl
+                num_batches_total += nb
+
+            avg_pl = total_policy_loss / max(num_batches_total, 1)
+            avg_vl = total_value_loss / max(num_batches_total, 1)
+            total_games = self.args['num_selfPlay_iterations']
+            print(
+                f"Iter {iteration:03d} | "
+                f"PolicyLoss={avg_pl:.4f} | "
+                f"ValueLoss={avg_vl:.4f} | "
+                f"WinRate={win_count/total_games:.2%} | "
+                f"NonWinRate={(total_games - win_count)/total_games:.2%}"
+            )
+
             torch.save(self.model.state_dict(),f"model_{iteration}.pt")
             torch.save(self.optimizer.state_dict(),f"optim_{iteration}.pt")
 
@@ -844,16 +877,17 @@ if __name__ == "__main__":
     model = AlphaPanNet(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
 
+    # num_iterations and num_selfPlay_iterations are tunable — start with 100/100, adjust based on GPU speed and convergence
     args = {
         'C': 2,
         'num_searches': 60,
-        'num_iterations': 3,
-        'num_selfPlay_iterations': 1,
-        'num_epochs': 1,
+        'num_iterations': 100,           # was 3 — scale to 100 for real learning
+        'num_selfPlay_iterations': 100,  # was 1 — scale to 100 games/iteration
+        'num_epochs': 4,
         'batch_size': 64,
-        'temperature' : 1.25,
+        'temperature': 1.25,
         'dirichlet_epsilon': 0.1,
-        'dirichlet_alpha':0.3
+        'dirichlet_alpha': 0.3
     }
 
     alphaPan = AlphaPan(model,optimizer,game,args)
