@@ -43,11 +43,11 @@ Plans:
   3. The window remains responsive and redraws during AI computation — no "(Not Responding)" freeze
   4. When the game ends a result screen appears; pressing a key restarts without relaunching the program
   5. The highest-numbered checkpoint is loaded automatically on startup and the model is in eval mode
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: Board rendering, piece display, click-to-move with valid move highlighting
-- [ ] 02-02: AI background thread, checkpoint auto-load with model.eval(), game-over screen and restart
+- [ ] 02-01-PLAN.md — Board rendering, piece display (custom notation), click-to-move with valid-move highlighting, side panel with move counter and draw loop tracker
+- [ ] 02-02-PLAN.md — AI background thread, MCTS.search() value return, checkpoint auto-load with model.eval(), game-over overlay, win probability bar
 
 ## Progress
 
