@@ -415,84 +415,68 @@ class Chenapan:
         
         return np.stack(arrays).astype(np.float32)
     
-class AlphaPanNet(nn.Module):
-    def __init__(self, device):
+class ResidualBlock(nn.Module):
+    def __init__(self, num_channels):
         super().__init__()
-        
+        self.conv1 = nn.Conv2d(num_channels, num_channels, kernel_size=3, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(num_channels)
+        self.conv2 = nn.Conv2d(num_channels, num_channels, kernel_size=3, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(num_channels)
+
+    def forward(self, x):
+        residual = x
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        out += residual          # skip connection — same channels in and out
+        return F.relu(out)
+
+
+class AlphaPanNet(nn.Module):
+    def __init__(self, device, num_res_blocks=4, num_hidden=64):
+        super().__init__()
         self.device = device
-        #Je veux que le réseau fasse des convolution jusqu'à avoir une bande 
-        
-        #il faut aussi prendre en compte dans le réseau le nombre de move effectué au total et biggest-loop !
-        #ce sont des scalaires ... Les ajouter dans la couche dense du value head ??
-        
-        #solution trouvé : ils sont directement dans l'encoded state
-        
-        self.compression_block = nn.Sequential(
-            nn.Conv2d(5, 32 , kernel_size=3, padding=1),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-            #(5,5,5) => (32,5,5)
-            nn.Conv2d(32,64,kernel_size=3),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-            #32,5,5 => 64,3,3
-            nn.Conv2d(64,128,kernel_size=3),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-            #64,3,3 => 128,1,1
-            
-            )
-        
-        #on a donc en sortie de ce block une matrice de taille 1x1x25*25
-        
-        #On va aplatir cette matrice pour linéariser et avoir une valeur entre -1 et 1
-        
-        self.value_head = nn.Sequential(
-            nn.Flatten(),
-            nn.Linear(128, 25),
-            nn.BatchNorm1d(25),
-            nn.ReLU(),
-            nn.Linear(25, 1),
-            nn.Tanh()
-            )
-        
-        #Et cette sortie là va servir pour produire une matrice de probabilité de 25x25
-        
-        
-        
-        self.policy_head = nn.Sequential(
-            nn.ConvTranspose2d(128, 64, kernel_size=3),      # (1,1) → (3,3)
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-        
-            nn.ConvTranspose2d(64, 32, kernel_size=3),       # (3,3) → (5,5)
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-        
-            nn.ConvTranspose2d(32, 16, kernel_size=5),       # (5,5) → (9,9)
-            nn.BatchNorm2d(16),
-            nn.ReLU(),
-        
-            nn.ConvTranspose2d(16, 8, kernel_size=9),        # (9,9) → (17,17)
-            nn.BatchNorm2d(8),
-            nn.ReLU(),
-        
-            nn.ConvTranspose2d(8, 1, kernel_size=9),         # (17,17) → (25,25)
-            nn.BatchNorm2d(1),
+
+        # Initial projection: 5 input channels -> num_hidden
+        self.start_block = nn.Sequential(
+            nn.Conv2d(5, num_hidden, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(num_hidden),
             nn.ReLU()
-            )
-        
+        )
+
+        # Residual tower
+        self.res_blocks = nn.ModuleList(
+            [ResidualBlock(num_hidden) for _ in range(num_res_blocks)]
+        )
+
+        # Value head: num_hidden channels -> scalar in [-1, 1]
+        self.value_head = nn.Sequential(
+            nn.Conv2d(num_hidden, 3, kernel_size=1, bias=False),
+            nn.BatchNorm2d(3),
+            nn.ReLU(),
+            nn.Flatten(),
+            nn.Linear(3 * 5 * 5, 64),
+            nn.ReLU(),
+            nn.Linear(64, 1),
+            nn.Tanh()
+        )
+
+        # Policy head: num_hidden channels -> 25x25 logits
+        self.policy_head = nn.Sequential(
+            nn.Conv2d(num_hidden, 32, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.Flatten(),
+            nn.Linear(32 * 5 * 5, 25 * 25)
+        )
+
         self.to(device)
-        
-    def forward(self,x):
-        # print("Input : ",x.shape)
-        x = self.compression_block(x)
-        # print("Encoded : ", x.shape)
-        policy = self.policy_head(x)
-        # print("Policy shape : ",policy.shape)
+
+    def forward(self, x):
+        x = self.start_block(x)
+        for block in self.res_blocks:
+            x = block(x)
+        policy = self.policy_head(x).view(-1, 25, 25)
         value = self.value_head(x)
-        # print("Value shape : ",value.shape)
-        
         return policy, value
 
 class Node:
