@@ -876,9 +876,9 @@ if __name__ == "__main__":
     args = {
         'C': 2,
         'num_searches': 60,
-        'num_iterations': 50,           # was 3 — scale to 100 for real learning
-        'num_selfPlay_iterations': 100,  # was 1 — scale to 100 games/iteration
-        'num_epochs': 2,
+        'num_iterations': 200,           # was 3 — to maximize
+        'num_selfPlay_iterations': 50,  # was 1 — 50/100 is ok
+        'num_epochs': 2, #stay low, 2 is optimal
         'batch_size': 64,
         'temperature': 1.25,
         'dirichlet_epsilon': 0.1,
