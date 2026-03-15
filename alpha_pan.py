@@ -767,7 +767,10 @@ class AlphaPan():
                 returnMemory = []
                 
                 for hist_state, hist_action_probs, hist_player in memory:
-                    hist_outcome = value if hist_player == player else self.game.get_opponent_value(value)
+                    if value == 1:  # decisive win: reward winner, penalize loser
+                        hist_outcome = 1 if hist_player == player else -1
+                    else:  # draw: same penalty for both players
+                        hist_outcome = value
                     returnMemory.append((self.game.get_encoded_state(hist_state),
                                          hist_action_probs,
                                          hist_outcome)
