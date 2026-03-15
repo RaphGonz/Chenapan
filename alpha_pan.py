@@ -72,7 +72,7 @@ VALID_MOVE_MATRIX = [
      ]
 
 
-MAX_NUMBER_OF_MOVES = 30 #plus de 30 coups et c'est fini et Draw
+MAX_NUMBER_OF_MOVES = 50 #plus de 50 coups et c'est fini et Draw
 MAX_NUMBER_OF_TIME_STATE_CAN_BE_VISITED = 3 #si on refait le même état 3 fois dans la partie c'est finis et Draw
 
 def flatten_and_sum_list_of_list(list_of_list):
@@ -375,7 +375,7 @@ class Chenapan:
             #ou il n'y a pas de move disponible
             #ou on a dépassé le nombre de move possible en une partie
             #ou on a visité 3 fois un état (boucle)
-            return 0, True
+            return -0.01*(10*self.biggest_loop+self.number_of_moves), True
 
         return 0, False #on continue le cas échéant
     
