@@ -72,7 +72,7 @@ VALID_MOVE_MATRIX = [
      ]
 
 
-MAX_NUMBER_OF_MOVES = 50 #plus de 50 coups et c'est fini et Draw
+MAX_NUMBER_OF_MOVES = 30 #plus de 30 coups et c'est fini et Draw
 MAX_NUMBER_OF_TIME_STATE_CAN_BE_VISITED = 3 #si on refait le même état 3 fois dans la partie c'est finis et Draw
 
 def flatten_and_sum_list_of_list(list_of_list):
@@ -875,12 +875,12 @@ if __name__ == "__main__":
     # num_iterations and num_selfPlay_iterations are tunable — start with 100/100, adjust based on GPU speed and convergence
     args = {
         'C': 2,
-        'num_searches': 120,
+        'num_searches': 60,
         'num_iterations': 200,           # was 3 — to maximize
         'num_selfPlay_iterations': 50,  # was 1 — 50/100 is ok
         'num_epochs': 2, #stay low, 2 is optimal
         'batch_size': 64,
-        'temperature': 3,
+        'temperature': 2,
         'dirichlet_epsilon': 0.3,
         'dirichlet_alpha': 0.3,
         'replay_buffer_size': 30_000  # ~10 iterations of data; evicts oldest samples automatically
