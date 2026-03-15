@@ -375,7 +375,7 @@ class Chenapan:
             #ou il n'y a pas de move disponible
             #ou on a dépassé le nombre de move possible en une partie
             #ou on a visité 3 fois un état (boucle)
-            return -1, True
+            return 0, True
 
         return 0, False #on continue le cas échéant
     
@@ -875,13 +875,13 @@ if __name__ == "__main__":
     # num_iterations and num_selfPlay_iterations are tunable — start with 100/100, adjust based on GPU speed and convergence
     args = {
         'C': 2,
-        'num_searches': 60,
+        'num_searches': 120,
         'num_iterations': 200,           # was 3 — to maximize
         'num_selfPlay_iterations': 50,  # was 1 — 50/100 is ok
         'num_epochs': 2, #stay low, 2 is optimal
         'batch_size': 64,
-        'temperature': 1.25,
-        'dirichlet_epsilon': 0.1,
+        'temperature': 3,
+        'dirichlet_epsilon': 0.3,
         'dirichlet_alpha': 0.3,
         'replay_buffer_size': 30_000  # ~10 iterations of data; evicts oldest samples automatically
     }
