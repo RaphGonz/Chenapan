@@ -311,9 +311,8 @@ def handle_click(pixel_pos: tuple, gs: dict, game: Chenapan) -> None:
         # Check terminal condition
         value, is_terminal = game.get_value_and_terminated(state, action)
         if is_terminal:
-            gs["terminal_value"]  = value
-            gs["terminal_player"] = 1    # human just moved
-            gs["game_state"]      = GameState.GAME_OVER
+            gs["terminal_value"] = value
+            gs["game_state"]     = GameState.GAME_OVER
         else:
             # Trigger AI turn
             gs["game_state"]         = GameState.AI_THINKING
@@ -360,7 +359,6 @@ def main() -> None:
         "selected_cell":     None,
         "ai_last_dest":      None,
         "terminal_value":    0,
-        "terminal_player":   0,
         "ai_action":         None,
         "ai_value":          0.0,
         "ai_thread_launched": False,
@@ -388,7 +386,6 @@ def main() -> None:
                     gs["selected_cell"]      = None
                     gs["ai_last_dest"]       = None
                     gs["terminal_value"]     = 0
-                    gs["terminal_player"]    = 0
                     gs["ai_action"]          = None
                     gs["ai_value"]           = 0.0
                     gs["ai_thread_launched"] = False
@@ -428,9 +425,8 @@ def main() -> None:
                 # Check terminal condition
                 value, is_terminal = game.get_value_and_terminated(gs["state"], action)
                 if is_terminal:
-                    gs["terminal_value"]  = value
-                    gs["terminal_player"] = -1   # AI just moved
-                    gs["game_state"]      = GameState.GAME_OVER
+                    gs["terminal_value"] = value
+                    gs["game_state"]     = GameState.GAME_OVER
                 else:
                     gs["game_state"] = GameState.WAITING_FOR_HUMAN
 
@@ -466,10 +462,8 @@ def main() -> None:
             screen.blit(overlay, (0, 0))
 
             if gs["terminal_value"] == 1:
-                if gs["terminal_player"] == 1:
-                    result_text = "You win"
-                else:
-                    result_text = "AI wins"
+                joker_pos = np.argwhere(gs["state"] == 0)
+                result_text = "You win" if (len(joker_pos) > 0 and joker_pos[0][0] == 0) else "AI wins"
             else:
                 result_text = "Draw"
 

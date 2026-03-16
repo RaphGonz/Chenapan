@@ -355,14 +355,20 @@ class Chenapan:
         end_row = action[1] // self.row_count
         end_column = action[1] % self.column_count
         
-        player = np.sign(state[start_row,start_column])
-        
-        if(state[end_row,end_column] == 0):
-            if(start_row == 0):
-                return 1 == player,player
-            if(start_row == 4):
-                return -1 == player,player
-        return False,player
+        # get_next_state swaps piece and joker, so after the call:
+        #   state[end_row, end_column] = the piece that moved (player's piece)
+        #   state[start_row, start_column] = 0 (joker is now here)
+        # Win condition is purely geographic: whoever pushed the joker there is irrelevant.
+        # The == 0 guard is also needed for MCTS calls where action coords may not match
+        # the changed-perspective state, preventing spurious wins.
+        player = np.sign(state[end_row,end_column])
+
+        if state[start_row, start_column] == 0:
+            if start_row == 0:
+                return True, 1   # joker reached row 0 → player +1 wins
+            if start_row == 4:
+                return True, -1  # joker reached row 4 → player -1 wins
+        return False, player
     
     def get_value_and_terminated(self,state,action):
         
