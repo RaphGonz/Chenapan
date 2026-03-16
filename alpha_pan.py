@@ -5,6 +5,7 @@ Created on Thu May 29 21:13:57 2025
 @author: raphg
 """
 
+import argparse
 import numpy as np
 print(np.__version__)
 import random
@@ -415,8 +416,8 @@ class Chenapan:
                 else :
                     joker_layer[i][j] = 1
                     
-        number_of_moves_layer = np.ones(np.shape(state))*self.number_of_moves
-        biggest_loop_layer = np.ones(np.shape(state))*self.biggest_loop
+        number_of_moves_layer = np.ones(np.shape(state))*(self.number_of_moves / MAX_NUMBER_OF_MOVES)
+        biggest_loop_layer = np.ones(np.shape(state))*(self.biggest_loop / MAX_NUMBER_OF_TIME_STATE_CAN_BE_VISITED)
         arrays = [number_of_moves_layer,biggest_loop_layer,adverse_layer,joker_layer,player_layer]
         
         return np.stack(arrays).astype(np.float32)
@@ -806,7 +807,8 @@ class AlphaPan():
             if out_policy.dim() == 4:
                 out_policy = out_policy.squeeze(1)  # devient (B, 25, 25)
 
-            policy_loss = F.binary_cross_entropy_with_logits(out_policy,policy_targets)
+            B = out_policy.shape[0]
+            policy_loss = -(policy_targets.view(B, -1) * F.log_softmax(out_policy.view(B, -1), dim=1)).sum(dim=1).mean()
             value_loss = F.mse_loss(out_value,value_targets)
 
             loss = policy_loss + value_loss
@@ -876,6 +878,10 @@ class AlphaPan():
             torch.save(self.optimizer.state_dict(), "optim.pt")
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--iterations", type=int, default=None, help="Override num_iterations")
+    cli = parser.parse_args()
+
     game = Chenapan()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = AlphaPanNet(device)
@@ -884,14 +890,14 @@ if __name__ == "__main__":
     # num_iterations and num_selfPlay_iterations are tunable — start with 100/100, adjust based on GPU speed and convergence
     args = {
         'C': 2,
-        'num_searches': 60,
-        'num_iterations': 200,           # was 3 — to maximize
+        'num_searches': 120,
+        'num_iterations': cli.iterations if cli.iterations is not None else 200,
         'num_selfPlay_iterations': 50,  # was 1 — 50/100 is ok
-        'num_epochs': 2, #stay low, 2 is optimal
+        'num_epochs': 5,
         'batch_size': 64,
-        'temperature': 2,
+        'temperature': 1,
         'dirichlet_epsilon': 0.3,
-        'dirichlet_alpha': 0.3,
+        'dirichlet_alpha': 0.5,
         'replay_buffer_size': 30_000  # ~10 iterations of data; evicts oldest samples automatically
     }
 
